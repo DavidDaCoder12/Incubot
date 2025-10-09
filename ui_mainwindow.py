@@ -23,7 +23,7 @@ class Ui_MainWindow(object):
         self.verticalLayout_11.setObjectName("verticalLayout_11")
         self.verticalLayout_3 = QtWidgets.QVBoxLayout()
         self.verticalLayout_3.setContentsMargins(-1, -1, -1, 0)
-        self.verticalLayout_3.setObjectName("verticalLayout_3")
+        self.verticalLayout_3.setObjectName("verticalLayout_3") 
         self.labelZoom = QtWidgets.QLabel(self.centralwidget)
         self.labelZoom.setMaximumSize(QtCore.QSize(16777215, 20))
         self.labelZoom.setAlignment(QtCore.Qt.AlignCenter)
