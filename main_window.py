@@ -13,7 +13,7 @@ from imaging_worker import ImagingWorker
 from tilt_calibration import TiltCalibration
 from experiment_dialog import ExperimentDialog
 from well_grid_widget import WellGridWidget
-
+import time
 
 
 class MainWindow(QtWidgets.QMainWindow, Ui_MainWindow):
@@ -21,7 +21,7 @@ class MainWindow(QtWidgets.QMainWindow, Ui_MainWindow):
         super().__init__()
 
         self.setupUi(self)
-
+        self.wellgridwidget.enable_checking = False
         self.stackedWidget.setCurrentIndex(0)
 
         
@@ -34,8 +34,6 @@ class MainWindow(QtWidgets.QMainWindow, Ui_MainWindow):
             parameterListView=self.parameterListView, 
             camera_actions=self.camera_actions
             )
-        
-        self.well_grid = WellGridWidget(parent=self, enable_checking=False)
         
         self.camera_actions.set_preset_manager(self.preset_manager)
         
@@ -77,6 +75,7 @@ class MainWindow(QtWidgets.QMainWindow, Ui_MainWindow):
         self.buttonZoomNeg.clicked.connect(lambda: self.camera_actions.zoom_out())
         self.buttonCaptureImg.clicked.connect(lambda: self.camera_actions.capture_image("captured_image.jpg"))
         self.buttonHome.clicked.connect(lambda: self.movement_control.goHome())
+        # self.buttonHome.clicked.connect(self.on_home_button_clicked)
 
         # Movement control
         self.buttonLeft.pressed.connect(lambda: self.movement_control.XNegFine())
@@ -89,8 +88,8 @@ class MainWindow(QtWidgets.QMainWindow, Ui_MainWindow):
         self.buttonZNegRough.pressed.connect(lambda: self.movement_control.ZNegRough())
         self.buttonZPosRough.pressed.connect(lambda: self.movement_control.ZPosRough())
 
-        # self.create_button_map()
-        # self.connect_buttons()
+        self.create_button_map()
+        self.connect_buttons()
 
         # LED controls
         self.buttonRed.clicked.connect(lambda: self.led_control.toggle('red'))
@@ -113,7 +112,30 @@ class MainWindow(QtWidgets.QMainWindow, Ui_MainWindow):
 
         self.wellgridwidget.setup_buttons()
         self.wellgridwidget.set_selected_wells([])
+        for btn in self.wellgridwidget.findChildren(QToolButton):
+            btn.setCheckable(False)
 
+    def on_home_button_clicked(self):
+        """Handle the Home button click: move stage home, then autofocus."""
+        print("Returning home and running autofocus...")
+
+        # Move to home position
+        self.movement_control.goHome()
+
+        # Give hardware a short pause to finish homing
+        time.sleep(1.5)
+
+        # Run autofocus using the camera actions
+        try:
+            self.camera_actions.auto_focus(
+                movement_control=self.movement_control,
+                start_z=params.zPos,
+                step=0.05,       # step size for Z scanning
+                n_steps=8        # number of steps to scan up and down
+            )
+            print("Autofocus completed.")
+        except Exception as e:
+            print(f"Autofocus failed: {e}")
     
     def create_button_map(self):
         """
@@ -126,7 +148,7 @@ class MainWindow(QtWidgets.QMainWindow, Ui_MainWindow):
         index = 0
         for row in rows:
             for col in cols:
-                button_name = f"button{row}{col}"
+                button_name = f"button{row}{col}_2"
                 self.button_map[button_name] = index
                 index += 1
 
@@ -134,10 +156,11 @@ class MainWindow(QtWidgets.QMainWindow, Ui_MainWindow):
         """
         Connects each well button's clicked signal to the move_to_well method.
         """
+        print("Connecting buttons in main window...")
         for button_name, index in self.button_map.items():
             # Get the button object from the UI by its name
             button = getattr(self, button_name, None)
-            # print(button)
+            print(button)
             if button is not None and isinstance(button, QToolButton):
                 # print(f"button connected")
                 # Connect the button click signal to move_to_well with the corresponding index

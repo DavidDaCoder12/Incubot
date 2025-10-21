@@ -4,6 +4,7 @@ from camera_preview import CameraPreview
 import os
 import parameters as params
 import cv2
+import time
 from presets import PresetManager
 from PyQt5.QtCore import QObject, pyqtSignal
 
@@ -123,12 +124,3 @@ class CameraActions(CameraPreview, QObject):  # Inherit from CameraPreview and Q
         self.camera.set_controls({"ExposureTime": exposure_time})
         params.exposure_time = exposure_time  # Update global parameter
         print(f"Exposure time set to {exposure_time} microseconds")
-
-    def measure_sharpness(self, frame):
-        """
-        Measures the sharpness of an image using the variance of the Laplacian.
-        A higher value indicates a sharper image.
-        """
-        gray_frame = cv2.cvtColor(frame, cv2.COLOR_BGR2GRAY)  # Convert image to grayscale
-        laplacian_var = cv2.Laplacian(gray_frame, cv2.CV_64F).var()  # Compute Laplacian variance
-        return laplacian_var

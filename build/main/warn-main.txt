@@ -1,0 +1,36 @@
+
+This file lists modules PyInstaller was not able to find. This does not
+necessarily mean this module is required for running your program. Python and
+Python 3rd-party packages include a lot of conditional or optional modules. For
+example the module 'ntpath' only exists on Windows, whereas the module
+'posixpath' only exists on Posix systems.
+
+Types if import:
+* top-level: imported at the top-level - look at these first
+* conditional: imported within an if-statement
+* delayed: imported within a function
+* optional: imported within a try-except-statement
+
+IMPORTANT: Do NOT post this list to the issue-tracker. Use it as a basis for
+            tracking down the missing module yourself. Thanks!
+
+missing module named 'org.python' - imported by copy (optional)
+missing module named _frozen_importlib_external - imported by importlib._bootstrap (delayed), importlib (optional), importlib.abc (optional)
+excluded module named _frozen_importlib - imported by importlib (optional), importlib.abc (optional)
+missing module named org - imported by pickle (optional)
+missing module named winreg - imported by importlib._bootstrap_external (conditional)
+missing module named nt - imported by os (delayed, conditional, optional), ntpath (optional), shutil (conditional), importlib._bootstrap_external (conditional)
+missing module named _winapi - imported by encodings (delayed, conditional, optional), ntpath (optional), subprocess (conditional)
+missing module named msvcrt - imported by subprocess (optional)
+missing module named numpy - imported by imaging_worker (top-level), tilt_calibration (top-level)
+missing module named PIL - imported by tilt_calibration (top-level)
+missing module named cv2 - imported by camera_actions (top-level), imaging_worker (top-level)
+missing module named scipy - imported by imaging_worker (top-level)
+missing module named serial - imported by movement_control (top-level), imaging_script (top-level)
+missing module named 'picamera2.previews' - imported by camera_actions (top-level)
+missing module named picamera2 - imported by camera_preview (top-level), camera_actions (top-level)
+missing module named RPi - imported by led_control (top-level)
+missing module named libcamera - imported by camera_preview (top-level)
+missing module named 'PyQt5.QtWidgets' - imported by main_window (top-level), well_grid_widget (top-level)
+missing module named 'PyQt5.QtCore' - imported by main_window (top-level), well_grid_widget (top-level), camera_preview (top-level), presets (top-level), camera_actions (top-level), imaging_worker (top-level)
+missing module named PyQt5 - imported by /home/ziqiu/Desktop/Incubot_Files_and_Scripts/qtGUI/main.py (top-level), main_window (top-level), ui_mainwindow (top-level), experiment_dialog (top-level), ui_experiment_dialog (top-level)
