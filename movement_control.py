@@ -82,73 +82,72 @@ class MovementControl:
 
         time.sleep(3)  # Wait for movement to complete
 
-    
     def moveZTo(self, z):
         """Move to a specific Z position."""
         params.zPos = z  # Update the global zPos
         zString = self.zBase + str(params.zPos) + self.commTerm
         self.ser.write(zString.encode('utf-8'))
-        print(f"Moving Z to: {params.zPos}")
+        print(f"Moving Z to: {params.zPos:.8f}")
 
 
     def XNegFine(self):
-        params.xPos += 0.2
+        params.xPos -= 0.2
         jog_command = "$J=G91 X-0.2 F1000\n"
         self.ser.write(jog_command.encode('utf-8'))
-        print(params.xPos)
+        print(f"X (after jog): {params.xPos:.8f}")
 
 
     def YNegFine(self):
         params.yPos -= 0.2
         jog_command = "$J=G91 Y-0.2 F1000\n"
         self.ser.write(jog_command.encode('utf-8'))
-        print(params.yPos)
+        print(f"Y (after jog): {params.yPos:.8f}")
 
 
-    def ZNegFine(self):
-        params.zPos -= 0.2
-        jog_command = "$J=G91 Z-0.2 F1000\n"
-
-        self.ser.write(jog_command.encode('utf-8'))
-        print(params.zPos)
+#    def ZNegFine(self):
+#       params.zPos -= 0.2
+#        jog_command = "$J=G91 Z-0.2 F1000\n"
+#
+#        self.ser.write(jog_command.encode('utf-8'))
+#        print(params.zPos)
 
 
     def XPosFine(self):
         params.xPos += 0.2
         jog_command = "$J=G91 X+0.2 F1000\n"
         self.ser.write(jog_command.encode('utf-8'))
-        print(params.xPos)
+        print(f"X (after jog): {params.xPos:.8f}")
 
     def YPosFine(self):
         params.yPos += 0.2
         jog_command = "$J=G91 Y+0.2 F1000\n"
         self.ser.write(jog_command.encode('utf-8'))
-        print(params.yPos)
+        print(f"Y (after jog): {params.yPos:.8f}")
 
     def ZPosFine(self):
         params.zPos += 0.01
         jog_command = "$J=G91 Z+0.01 F1000\n"
         self.ser.write(jog_command.encode('utf-8'))
-        print(params.zPos)
+        print(f"Z (after jog): {params.zPos:.8f}")
 
     def ZPosRough(self):
         params.zPos += 0.1
         jog_command = "$J=G91 Z+0.1 F1000\n"
         self.ser.write(jog_command.encode('utf-8'))
-        print(params.zPos)
+        print(f"Z (after jog): {params.zPos:.8f}")
 
 
     def ZNegFine(self):
         params.zPos -= 0.01
         jog_command = "$J=G91 Z-0.01 F1000\n"
         self.ser.write(jog_command.encode('utf-8'))
-        print(params.zPos)
+        print(f"Z (after jog): {params.zPos:.8f}")
         
     def ZNegRough(self):
         params.zPos -= 0.1
         jog_command = "$J=G91 Z-0.1 F1000\n"
         self.ser.write(jog_command.encode('utf-8'))
-        print(params.zPos)
+        print(f"Z (after jog): {params.zPos:.8f}")
 
 
     def stopMovement(self):
@@ -164,8 +163,11 @@ class MovementControl:
         homePosition = "$H\n" + self.commTerm
         time.sleep(0.5)
         self.ser.write(homePosition.encode('utf-8'))
-        self.ser.write(b'G92X3.2Y3.2Z0\n')
-        print(f"X: {params.xPos} Y: {params.yPos} Z: {params.zPos}")
+        self.ser.write(b'G92X3.2Y3.2Z0.0\n')  # Changed from Z0 to Z-3.0
+        params.xPos = 3.2
+        params.yPos = 3.2
+        params.zPos = 0  # Update this too
+        print(f"Home: X={params.xPos}, Y={params.yPos}, Z={params.zPos}")
 
     def close(self):
         self.ser.close()  # Close the serial connection

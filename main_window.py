@@ -23,7 +23,6 @@ class MainWindow(QtWidgets.QMainWindow, Ui_MainWindow):
         self.setupUi(self)
         self.wellgridwidget.enable_checking = False
         self.stackedWidget.setCurrentIndex(0)
-
         
         # Initialize components before calling initUI
         self.camera_preview = CameraPreview(self.cameraView)
@@ -47,10 +46,15 @@ class MainWindow(QtWidgets.QMainWindow, Ui_MainWindow):
         )
 
         self.imaging_worker = None
-
+        # Initialize tilt calibration
+        self.tilt_calibration = TiltCalibration()
+        self.calibration_z_values = [None, None, None, None]  # Store Z values for 4 corners
+        self.calibration_in_progress = False
+    
+        # Connect calibration buttons once during initialization
+        self.setup_calibration_buttons()
         self.initUI()
         
-
 
     def initUI(self):
         # Button connections
@@ -172,27 +176,31 @@ class MainWindow(QtWidgets.QMainWindow, Ui_MainWindow):
     def save_current_preset(self):
         self.preset_manager.save_preset()
 
+    def setup_calibration_buttons(self):
+        """
+        Set up calibration button connections once during initialization.
+        This prevents duplicate connections.
+        """
+        self.confirmZ1.clicked.connect(lambda: self.store_z_value(0))
+        self.confirmZ2.clicked.connect(lambda: self.store_z_value(1))
+        self.confirmZ3.clicked.connect(lambda: self.store_z_value(2))
+        self.confirmZ4.clicked.connect(lambda: self.store_z_value(3))
+
     def beginButtonClicked(self):
-        # if not self.imaging_worker.isRunning():
-
-        z_arr = [None,None,None,None]
-        self.switch_page(1)  # Go to Page 1
-
-        self.confirmZ1.clicked.connect(lambda: self.store_z_value(0, params.zPos, z_arr))
-        self.confirmZ2.clicked.connect(lambda: self.store_z_value(1, params.zPos, z_arr))
-        self.confirmZ3.clicked.connect(lambda: self.store_z_value(2, params.zPos, z_arr))
-        self.confirmZ4.clicked.connect(lambda: self.store_z_value(3, params.zPos, z_arr))
-            
-        print("Begin Imaging button clicked") 
-        # Wait for finish signal
-
-
-        # else:
-        #     print("Imaging process is already running.")
-
-        #     # Reset the worker if necessary
-        #     # self.initialize_imaging_worker()
-        #     # self.imaging_worker.start()
+        """
+        Start the calibration process by moving to the first corner.
+        """
+        print("Begin calibration button clicked")
+    
+        # Reset calibration values
+        self.calibration_z_values = [None, None, None, None]
+        self.calibration_in_progress = True
+    
+        # Switch to first calibration page and move to first corner
+        self.switch_page(1)
+    
+        # Update UI to show which corners need calibration
+        self.update_calibration_status()
     
     def open_experiment_dialog(self):
         dialog = ExperimentDialog(self)
@@ -200,32 +208,151 @@ class MainWindow(QtWidgets.QMainWindow, Ui_MainWindow):
             data = dialog.get_experiment_data()
             self.preset_manager.save_preset(data["name"], data)
     
-    def store_z_value(self, index, value, z_arr):
-        z_arr[index] = value
-        print(f"Z{index+1} confirmed:", value)
+    def store_z_value(self, index):
+        """
+        Store the current Z position for the specified corner.
+    
+        Parameters:
+        -----------
+        index : int
+            Corner index (0-3)
+        """
+        if not self.calibration_in_progress:
+            print("Calibration not in progress")
+            return
+    
+        # Store current Z position
+        self.calibration_z_values[index] = params.zPos
+        print(f"✓ Corner {index + 1} Z confirmed: {params.zPos:.4f} mm")
+    
+        # Update UI to show this corner is confirmed
+        self.update_calibration_status()
+    
+        # Check if all corners are measured
+        if all(z is not None for z in self.calibration_z_values):
+            self.complete_calibration()
 
-        if all(z is not None for z in z_arr):
-            x_arr = [params.x_positions[0], params.x_positions[11], params.x_positions[84], params.x_positions[95]]
-            y_arr = [params.y_positions[0], params.y_positions[11], params.y_positions[84], params.y_positions[95]]
-            z_corrected = TiltCalibration.calibrate_z(self, x_arr, y_arr, z_arr)
-            print("Z plane calibrated")
-            print(z_corrected)
+    def update_calibration_status(self):
+        """
+        Update UI to show which corners have been measured.
+        Optional: Add visual indicators on your UI.
+        """
+        status = []
+        corner_names = ["A1 (Top-Left)", "A12 (Top-Right)", "H1 (Bottom-Left)", "H12 (Bottom-Right)"]
+    
+        for i, z_val in enumerate(self.calibration_z_values):
+            if z_val is not None:
+                status.append(f"✓ {corner_names[i]}: {z_val:.4f} mm")
+            else:
+                status.append(f"○ {corner_names[i]}: Not measured")
+    
+        print("\nCalibration Status:")
+        print("\n".join(status))
+        print()
 
+
+    def complete_calibration(self):
+        """
+        Complete the calibration process by calculating and applying Z corrections.
+        """
+        print("\n" + "="*50)
+        print("COMPLETING CALIBRATION")
+        print("="*50)
+    
+        try:
+            # Get corner coordinates
+            corner_indices = self.tilt_calibration.get_corner_indices()
+            x_arr = [params.x_positions[i] for i in corner_indices]
+            y_arr = [params.y_positions[i] for i in corner_indices]
+            z_arr = self.calibration_z_values
+
+            # Validate measurements
+            is_valid, message = TiltCalibration.validate_corner_measurements(z_arr)
+            if not is_valid:
+                print(f"✗ Calibration validation failed: {message}")
+                # Optionally show error dialog to user
+                QtWidgets.QMessageBox.warning(
+                    self,
+                    "Calibration Validation Failed",
+                    f"{message}\n\nPlease restart calibration and check your measurements."
+                )
+                return
+
+            print(f"✓ Validation passed: {message}")
+
+            # Calculate corrected Z positions
+            z_corrected = TiltCalibration.calibrate_z(x_arr, y_arr, z_arr)
+
+            # Apply to parameters
+            TiltCalibration.apply_calibration(z_corrected)
+
+            # Optionally save calibration
+            TiltCalibration.save_calibration()
+
+            print("="*50)
+            print("✓ CALIBRATION COMPLETE")
+            print("="*50 + "\n")
+
+            self.calibration_in_progress = False
+
+            # Show success message to user
+            QtWidgets.QMessageBox.information(
+                self, 
+                "Calibration Complete", 
+                f"Z-axis calibration successful!\n{message}\n\nReturning to main window."
+            )
+
+            # Return to main window (page 0)
+            self.switch_page(0)
+
+        except Exception as e:
+            print(f"✗ Calibration failed: {e}")
+            import traceback
+            traceback.print_exc()
+
+            # Show error dialog to user
+            QtWidgets.QMessageBox.critical(
+                self, 
+                "Calibration Error", 
+                f"Failed to complete calibration:\n{str(e)}"
+            )
 
     def switch_page(self, page_index):
-        """Switches to the given page, updates button states, and moves the CNC head."""
+        """
+        Switches to the given page and moves to the appropriate corner well.
+        """
         self.stackedWidget.setCurrentIndex(page_index)
+    
+        corner_indices = self.tilt_calibration.get_corner_indices()
+    
+        if page_index == 1:  # Corner 1: A1 (top-left)
+            self.movement_control.move_to_well(corner_indices[0])
+            print(f"Move to Corner 1: Well A1 (index {corner_indices[0]})")
 
-        if page_index == 1:  # Calibration Page 1
-            self.movement_control.move_to_well(0)
-        elif page_index == 2:  # Calibration Page 2
-            self.movement_control.move_to_well(11)
-        elif page_index == 3:  # Calibration Page 3
-            self.movement_control.move_to_well(84)
-        elif page_index == 4:
-            self.movement_control.move_to_well(95)
+        elif page_index == 2:  # Corner 2: A12 (top-right)
+            self.movement_control.move_to_well(corner_indices[1])
+            print(f"Move to Corner 2: Well A12 (index {corner_indices[1]})")
 
+        elif page_index == 3:  # Corner 3: H1 (bottom-left)
+            self.movement_control.move_to_well(corner_indices[2])
+            print(f"Move to Corner 3: Well H1 (index {corner_indices[2]})")
 
+        elif page_index == 4:  # Corner 4: H12 (bottom-right)
+            self.movement_control.move_to_well(corner_indices[3])
+            print(f"Move to Corner 4: Well H12 (index {corner_indices[3]})")
+
+    def load_previous_calibration(self):
+        """
+        Attempt to load a previously saved calibration.
+        Call this during initialization if you want to restore calibration between sessions.
+        """
+        if TiltCalibration.load_calibration():
+            print("Previous calibration loaded successfully")
+            return True
+        else:
+            print("No previous calibration found or load failed")
+            return False
+    
     def initialize_imaging_worker(self):
         if self.imaging_worker is not None:
             self.imaging_worker.deleteLater()  # Clean up the old worker
