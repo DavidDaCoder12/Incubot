@@ -605,7 +605,7 @@ class Ui_MainWindow(object):
         self.gridLayout_3.addWidget(self.buttonH10_2, 7, 9, 1, 1)
         self.buttonh11_2 = QtWidgets.QToolButton(self.wellgridwidget)
         self.buttonh11_2.setMinimumSize(QtCore.QSize(50, 50))
-        self.buttonh11_2.setObjectName("buttonh11_2")
+        self.buttonh11_2.setObjectName("buttonH11_2")
         self.gridLayout_3.addWidget(self.buttonh11_2, 7, 10, 1, 1)
         self.buttonH12_2 = QtWidgets.QToolButton(self.wellgridwidget)
         self.buttonH12_2.setMinimumSize(QtCore.QSize(50, 50))

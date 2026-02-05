@@ -219,75 +219,6 @@
           </item>
           <item>
            <layout class="QGridLayout" name="gridLayout_2">
-            <item row="0" column="1">
-             <widget class="QToolButton" name="buttonUp">
-              <property name="enabled">
-               <bool>true</bool>
-              </property>
-              <property name="minimumSize">
-               <size>
-                <width>90</width>
-                <height>90</height>
-               </size>
-              </property>
-              <property name="maximumSize">
-               <size>
-                <width>16777215</width>
-                <height>16777215</height>
-               </size>
-              </property>
-              <property name="mouseTracking">
-               <bool>false</bool>
-              </property>
-              <property name="text">
-               <string>&lt;-</string>
-              </property>
-              <property name="arrowType">
-               <enum>Qt::UpArrow</enum>
-              </property>
-             </widget>
-            </item>
-            <item row="1" column="1">
-             <widget class="QToolButton" name="buttonHome">
-              <property name="minimumSize">
-               <size>
-                <width>90</width>
-                <height>90</height>
-               </size>
-              </property>
-              <property name="text">
-               <string>Home</string>
-              </property>
-             </widget>
-            </item>
-            <item row="2" column="1">
-             <widget class="QToolButton" name="buttonDown">
-              <property name="enabled">
-               <bool>true</bool>
-              </property>
-              <property name="minimumSize">
-               <size>
-                <width>90</width>
-                <height>90</height>
-               </size>
-              </property>
-              <property name="maximumSize">
-               <size>
-                <width>16777215</width>
-                <height>16777215</height>
-               </size>
-              </property>
-              <property name="mouseTracking">
-               <bool>false</bool>
-              </property>
-              <property name="text">
-               <string>&lt;-</string>
-              </property>
-              <property name="arrowType">
-               <enum>Qt::DownArrow</enum>
-              </property>
-             </widget>
-            </item>
             <item row="1" column="0">
              <widget class="QToolButton" name="buttonLeft">
               <property name="minimumSize">
@@ -332,6 +263,75 @@
               </property>
              </widget>
             </item>
+            <item row="1" column="1">
+             <widget class="QToolButton" name="buttonHome">
+              <property name="minimumSize">
+               <size>
+                <width>90</width>
+                <height>90</height>
+               </size>
+              </property>
+              <property name="text">
+               <string>Home</string>
+              </property>
+             </widget>
+            </item>
+            <item row="0" column="1">
+             <widget class="QToolButton" name="buttonUp">
+              <property name="enabled">
+               <bool>true</bool>
+              </property>
+              <property name="minimumSize">
+               <size>
+                <width>90</width>
+                <height>90</height>
+               </size>
+              </property>
+              <property name="maximumSize">
+               <size>
+                <width>16777215</width>
+                <height>16777215</height>
+               </size>
+              </property>
+              <property name="mouseTracking">
+               <bool>false</bool>
+              </property>
+              <property name="text">
+               <string>&lt;-</string>
+              </property>
+              <property name="arrowType">
+               <enum>Qt::UpArrow</enum>
+              </property>
+             </widget>
+            </item>
+            <item row="2" column="1">
+             <widget class="QToolButton" name="buttonDown">
+              <property name="enabled">
+               <bool>true</bool>
+              </property>
+              <property name="minimumSize">
+               <size>
+                <width>90</width>
+                <height>90</height>
+               </size>
+              </property>
+              <property name="maximumSize">
+               <size>
+                <width>16777215</width>
+                <height>16777215</height>
+               </size>
+              </property>
+              <property name="mouseTracking">
+               <bool>false</bool>
+              </property>
+              <property name="text">
+               <string>&lt;-</string>
+              </property>
+              <property name="arrowType">
+               <enum>Qt::DownArrow</enum>
+              </property>
+             </widget>
+            </item>
            </layout>
           </item>
          </layout>
@@ -340,36 +340,10 @@
       </item>
      </layout>
     </item>
-    <item row="0" column="1">
-     <widget class="QWidget" name="cameraView" native="true">
-      <property name="minimumSize">
-       <size>
-        <width>650</width>
-        <height>550</height>
-       </size>
-      </property>
-      <property name="maximumSize">
-       <size>
-        <width>1000</width>
-        <height>16777215</height>
-       </size>
-      </property>
-     </widget>
-    </item>
     <item row="0" column="2" rowspan="2">
      <layout class="QVBoxLayout" name="verticalLayout_6">
       <item>
-       <layout class="QVBoxLayout" name="verticalLayout_9" stretch="0,8">
-        <item>
-         <widget class="QLabel" name="labelLED">
-          <property name="text">
-           <string>LED Toggles</string>
-          </property>
-          <property name="alignment">
-           <set>Qt::AlignCenter</set>
-          </property>
-         </widget>
-        </item>
+       <layout class="QVBoxLayout" name="verticalLayout_9" stretch="0">
         <item>
          <layout class="QVBoxLayout" name="verticalLayout_5">
           <property name="spacing">
@@ -381,6 +355,16 @@
           <property name="bottomMargin">
            <number>80</number>
           </property>
+          <item>
+           <widget class="QLabel" name="labelLED">
+            <property name="text">
+             <string>LED Toggles</string>
+            </property>
+            <property name="alignment">
+             <set>Qt::AlignCenter</set>
+            </property>
+           </widget>
+          </item>
           <item>
            <widget class="QToolButton" name="buttonBlue">
             <property name="minimumSize">
@@ -430,6 +414,62 @@
             </property>
             <property name="text">
              <string>Red</string>
+            </property>
+           </widget>
+          </item>
+          <item>
+           <widget class="QLabel" name="labelLED_2">
+            <property name="maximumSize">
+             <size>
+              <width>110</width>
+              <height>20</height>
+             </size>
+            </property>
+            <property name="text">
+             <string>LED Brightness</string>
+            </property>
+            <property name="alignment">
+             <set>Qt::AlignLeading|Qt::AlignLeft|Qt::AlignVCenter</set>
+            </property>
+           </widget>
+          </item>
+          <item>
+           <widget class="QSlider" name="sliderLED">
+            <property name="enabled">
+             <bool>true</bool>
+            </property>
+            <property name="sizePolicy">
+             <sizepolicy hsizetype="Minimum" vsizetype="Maximum">
+              <horstretch>0</horstretch>
+              <verstretch>0</verstretch>
+             </sizepolicy>
+            </property>
+            <property name="maximumSize">
+             <size>
+              <width>16777215</width>
+              <height>30</height>
+             </size>
+            </property>
+            <property name="styleSheet">
+             <string notr="true">QSlider::groove:horizontal {
+    background: palette(mid);  /* Keeps system-like color */
+    height: 10px;
+    border: 1px solid #999999;
+    border-radius: 4px;
+}
+
+QSlider::handle:horizontal {
+    background: palette(button);  /* Uses system button color */
+    border: 1px solid #5c5c5c;
+    width: 20px;
+    height: 60px;
+    margin: -15px 0;
+    border-radius: 4px;
+}
+</string>
+            </property>
+            <property name="orientation">
+             <enum>Qt::Horizontal</enum>
             </property>
            </widget>
           </item>
@@ -1824,7 +1864,7 @@
                 </widget>
                </item>
                <item row="7" column="10">
-                <widget class="QToolButton" name="buttonh11_2">
+                <widget class="QToolButton" name="buttonH11_2">
                  <property name="minimumSize">
                   <size>
                    <width>50</width>
@@ -3034,6 +3074,22 @@ QSlider::handle:horizontal {
         </item>
        </layout>
       </widget>
+     </widget>
+    </item>
+    <item row="0" column="1">
+     <widget class="QWidget" name="cameraView" native="true">
+      <property name="minimumSize">
+       <size>
+        <width>650</width>
+        <height>550</height>
+       </size>
+      </property>
+      <property name="maximumSize">
+       <size>
+        <width>1000</width>
+        <height>16777215</height>
+       </size>
+      </property>
      </widget>
     </item>
    </layout>

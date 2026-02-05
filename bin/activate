@@ -38,7 +38,7 @@ deactivate () {
 # unset irrelevant variables
 deactivate nondestructive
 
-VIRTUAL_ENV=/home/ziqiu/Desktop/Incubot_Files_and_Scripts/qtGUI
+VIRTUAL_ENV=/home/ziqiu/Desktop/Incubot_Files_and_Scripts/Incubot
 export VIRTUAL_ENV
 
 _OLD_VIRTUAL_PATH="$PATH"
@@ -55,9 +55,9 @@ fi
 
 if [ -z "${VIRTUAL_ENV_DISABLE_PROMPT:-}" ] ; then
     _OLD_VIRTUAL_PS1="${PS1:-}"
-    PS1='(qtGUI) '"${PS1:-}"
+    PS1='(Incubot) '"${PS1:-}"
     export PS1
-    VIRTUAL_ENV_PROMPT='(qtGUI) '
+    VIRTUAL_ENV_PROMPT='(Incubot) '
     export VIRTUAL_ENV_PROMPT
 fi
 
