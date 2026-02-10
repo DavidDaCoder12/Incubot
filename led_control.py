@@ -80,8 +80,10 @@ class LedControl:
             self.color_states[color] = False
     
     def set_brightness(self, brightness):
-        """Set brightness (0.0 to 1.0)"""
-        self.pixels.brightness = max(0.0, min(1.0, brightness))
+        """Set brightness (0 to 255)"""
+        # Convert 0-255 to 0.0-1.0
+        normalized = max(0, min(255, brightness)) / 255.0
+        self.pixels.brightness = normalized
         self.pixels.show()
     
     def cleanup(self):

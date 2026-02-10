@@ -4,10 +4,11 @@ from PyQt5.QtCore import QStringListModel
 import parameters as params
 
 class PresetManager:
-    def __init__(self, presetDropDown, parameterListView, camera_actions=None):
+    def __init__(self, presetDropDown, parameterListView, camera_actions=None, main_window=None):
         self.presetDropDown = presetDropDown
         self.parameterListView = parameterListView
         self.camera_actions = camera_actions
+        self.main_window = main_window  # Add reference to MainWindow
 
         self.parameterListModel = QStringListModel()
         self.parameterListView.setModel(self.parameterListModel)
@@ -20,7 +21,6 @@ class PresetManager:
         self.presetDropDown.currentIndexChanged.connect(self.load_selected_preset)
 
         self.refresh_presets()
-
 
     def get_preset_path(self, name):
         return os.path.join(self.preset_dir, f"preset_{name}.json")
@@ -50,12 +50,17 @@ class PresetManager:
         params.brightness = data.get('brightness', params.brightness)
         params.contrast = data.get('contrast', params.contrast)
         params.exposure_time = data.get('exposure_time', params.exposure_time)
+        
         if self.camera_actions:
             self.camera_actions.set_brightness(params.brightness)
             self.camera_actions.set_contrast(params.contrast)
             self.camera_actions.set_exposure(params.exposure_time)
 
-        self.update_parameter_list()
+        # Update sliders to reflect loaded values
+        if self.main_window:
+            self.main_window.update_sliders_from_preset(data)
+
+        self.update_parameter_list(data)  # Pass data here
         print(f"Loaded preset: {name}")
 
     def load_preset_from_file(self, name):
@@ -85,9 +90,11 @@ class PresetManager:
         if 'brightness' in data:
             param_display.append(f"Brightness: {data['brightness']}")
         if 'contrast' in data:
-            param_display.append(f"Contrast: {data['contrast']}")
+           param_display.append(f"Contrast: {data['contrast']}")
         if 'exposure_time' in data:
             param_display.append(f"Exposure Time: {data['exposure_time']}")
+        if 'led_brightness' in data:
+            param_display.append(f"LED Brightness: {data['led_brightness']}")
         if 'selected_buttons' in data:
             param_display.append(f"Selected Buttons: {', '.join(data['selected_buttons'])}")
 
