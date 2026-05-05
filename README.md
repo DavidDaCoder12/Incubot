@@ -260,4 +260,5 @@ This project is designed to be picked up and extended by future students. If you
 
 ---
 
-*Original author: David — GitHub: [@DavidDaCoder12](https://github.com/DavidDaCoder12)*
+*Project Created By: Ziqiu Feng — GitHub: [@ziqiuf](https://github.com/ziqiuf)*
+*Contributors: David Chen — GitHub: [@DavidDaCoder12](https://github.com/DavidDaCoder12)*
