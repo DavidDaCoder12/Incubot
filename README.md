@@ -49,7 +49,7 @@ The goal of Incubot is to automate microscopy of biological cells grown in a sta
 | Motion Controller | Arduino (G-code over serial) |
 | Single Board Computer | Raspberry Pi 5 |
 | Camera | Raspberry Pi Camera Module |
-| Illumination | LED (controlled via `led_control.py`) |
+| Illumination | Adafruit NeoPixel Ring 12 5050 RGB LED (controlled via `led_control.py`) |
 | Sample Format | Standard 96-well plate |
 
 > **Note for future students:** The 3D printer's extruder and heated bed have been removed. The print head mount has been replaced with the camera and lens assembly. The Z-axis is used exclusively for focusing, not for printing.
