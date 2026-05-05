@@ -1,80 +1,129 @@
-# from PyQt5.QtGui import QImage
-# from PyQt5.QtCore import QTimer
-# from picamera2.previews.qt import QGlPicamera2
-# from picamera2 import Picamera2
-
-# class CameraPreview(QGlPicamera2):
-#     def __init__(self, parent=None):
-#         # Initialize Picamera2
-#         self.camera = Picamera2()
-        
-#         # Initialize QGlPicamera2 with Picamera2 instance and parent widget
-#         super().__init__(self.camera, parent)
-
-#         # Set a fixed size for the OpenGL widget
-#         self.setFixedSize(700, 560)  # Adjust these dimensions as needed
-
-#         # Configure the camera for full frame, adjusting the ROI to ensure no cropping
-#         config = self.camera.create_preview_configuration(main={"size": self.camera.sensor_resolution})
-#         config["controls"] = {"FrameRate": 10}
-#         self.camera.configure(config)
-#         self.camera.start()
-
-#         # Timer for refreshing the frame
-#         self.timer = QTimer(self)
-#         self.timer.timeout.connect(self.update)
-#         self.timer.start(100)  # Refresh rate in milliseconds (adjust if needed)
-
-#     def close(self):
-#         # Cleanup camera resources
-#         self.camera.stop()
-#         self.timer.stop()
-
-import threading
-import time
-from PyQt5.QtCore import QTimer
-from picamera2.previews.qt import QGlPicamera2
+from PyQt5.QtCore import QThread, pyqtSignal, QMutex, QMutexLocker
+from PyQt5.QtWidgets import QLabel
+from PyQt5.QtGui import QImage, QPixmap
 from picamera2 import Picamera2
 import libcamera
+import numpy as np
+import time
 
-class CameraPreview(QGlPicamera2):
+
+class CameraThread(QThread):
+    """Separate thread for camera operations to avoid blocking GUI"""
+    frame_ready = pyqtSignal(np.ndarray)
+    
+    def __init__(self, camera):
+        super().__init__()
+        self.camera = camera
+        self.running = True
+        self.capture_requested = False
+        self.capture_mutex = QMutex()
+        self.latest_frame = None
+        
+    def run(self):
+        """Continuously capture frames in background thread"""
+        while self.running:
+            try:
+                if not self.camera.started:
+                    print("Camera not started, waiting...")
+                    time.sleep(0.5)
+                    continue
+                
+                # Non-blocking frame capture
+                array = self.camera.capture_array("main")
+
+                with QMutexLocker(self.capture_mutex):
+                    self.latest_frame = array.copy()
+
+                # Emit signal for preview update
+                self.frame_ready.emit(array)
+
+                time.sleep(0.033)  # ~30 fps
+
+            except RuntimeError as e:
+                # Camera might be temporarily unavailable
+                print(f"Camera temporarily unavailable: {e}")
+                time.sleep(0.2)
+            except Exception as e:
+                print(f"Camera thread error: {e}")
+                time.sleep(0.1)
+        
+    def get_latest_frame(self):
+        """Thread-safe way to get the latest frame"""
+        with QMutexLocker(self.capture_mutex):
+            if self.latest_frame is not None:
+                return self.latest_frame.copy()
+            return None
+    
+    def stop(self):
+        """Stop the camera thread"""
+        self.running = False
+        self.wait()
+
+
+class CameraPreview(QLabel):
+    """Camera preview widget using QLabel for simplicity and thread safety"""
+    
     def __init__(self, camera_widget):
+        super().__init__(camera_widget)
+        
         # Initialize Picamera2
         self.camera = Picamera2()
-        self.camera_widget = camera_widget
         
-        # Initialize QGlPicamera2 with Picamera2 instance and parent widget
-        super().__init__(self.camera, self.camera_widget)
-
-        # Set a fixed size for the OpenGL widget
-        self.setFixedSize(700, 560)
-
-        # Configure the camera with reduced resolution for preview to save resources
-        self.config = self.camera.create_preview_configuration(main={"size": self.camera.sensor_resolution, "format": "YUV420"}, transform=libcamera.Transform(vflip=True))
-        self.config["controls"] = {"FrameRate": 15, "ScalerCrop": (0, 0, self.camera.sensor_resolution[0], self.camera.sensor_resolution[1])}
-        # self.config["controls"]["Saturation"] = 0.0
+        # Configure the camera
+        self.config = self.camera.create_preview_configuration(
+            main={"size": self.camera.sensor_resolution, "format": "XRGB8888"},
+            transform=libcamera.Transform(vflip=True),
+            buffer_count=4
+        )
+        self.config["controls"] = {
+            "FrameRate": 30,
+        }
         self.camera.configure(self.config)
-
-        self.qpicamera2 = QGlPicamera2(self.camera, width=640, height=480, keep_ar=True)
-
-        # Connect the camera's done_signal to the capture_done callback
-        self.qpicamera2.done_signal.connect(self.capture_done)
-
-        # Start the camera in the background
-        self.camera.start(show_preview=True)
-
-        # Timer for updating preview display at a reduced rate
-        self.timer = QTimer(self)
-        self.timer.timeout.connect(self.update)
-        self.timer.start(200)  # Lower refresh rate, e.g., 200 ms
-
-    def capture_done(self, job):
-        # Handle capture completion
-        result = self.camera.wait(job)
-        print("Capture completed:", result)
-
-    def close(self, event):
-        # Cleanup camera resources
-        self.camera.stop()
-        self.timer.stop()
-        event.accept()
+        
+        # Set widget size
+        self.setFixedSize(700, 560)
+        self.setScaledContents(True)
+        
+        # Start camera
+        self.camera.start()
+        time.sleep(0.5)  # Let camera warm up
+        
+        # Start camera thread
+        self.camera_thread = CameraThread(self.camera)
+        self.camera_thread.frame_ready.connect(self.update_preview)
+        self.camera_thread.start()
+        
+        print("Camera preview initialized in separate thread")
+    
+    def update_preview(self, frame):
+        """Update the preview display with new frame"""
+        try:
+            # Convert numpy array to QImage
+            height, width = frame.shape[:2]
+            
+            # XRGB8888 format
+            if frame.shape[2] == 4:
+                qimage = QImage(frame.data, width, height, 
+                               frame.strides[0], QImage.Format_RGB32)
+            else:
+                qimage = QImage(frame.data, width, height, 
+                               frame.strides[0], QImage.Format_RGB888)
+            
+            # Convert to pixmap and display
+            pixmap = QPixmap.fromImage(qimage)
+            self.setPixmap(pixmap)
+            
+        except Exception as e:
+            print(f"Preview update error: {e}")
+    
+    def get_frame(self):
+        """Get the latest frame without blocking"""
+        return self.camera_thread.get_latest_frame()
+    
+    def close(self):
+        """Cleanup camera resources"""
+        print("Closing camera preview...")
+        self.camera_thread.stop()
+        if self.camera.started:
+            self.camera.stop()
+        print("Camera closed")

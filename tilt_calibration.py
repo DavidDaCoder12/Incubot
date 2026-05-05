@@ -19,77 +19,77 @@ class TiltCalibration:
     @staticmethod
     def calibrate_z(x_arr, y_arr, z_arr, plate_size=(8, 12)):
         """
-        Calibrate Z positions across the entire plate based on 4 corner measurements.
-        
-        Uses bilinear interpolation to fit a plane through the corner points.
-        
+        Calibrate Z positions across the entire plate based on measured points.
+    
+        Uses least-squares plane fitting to fit through any number of measurement points (≥3).
+        More measurement points = better fit, especially for non-planar surfaces.
+    
         Parameters:
         -----------
-        x_arr : list of 4 floats
-            X coordinates of corners [top-left, top-right, bottom-left, bottom-right]
-        y_arr : list of 4 floats
-            Y coordinates of corners [top-left, top-right, bottom-left, bottom-right]
-        z_arr : list of 4 floats
-            Measured Z positions at corners [top-left, top-right, bottom-left, bottom-right]
+        x_arr : list of floats
+            X coordinates of measured points
+        y_arr : list of floats
+            Y coordinates of measured points
+        z_arr : list of floats
+            Measured Z positions at those points
         plate_size : tuple
             (rows, cols) dimensions of the well plate
-            
+        
         Returns:
         --------
         np.ndarray : Flattened array of 96 corrected Z positions
         """
-        
+
         # Validate inputs
-        if len(x_arr) != 4 or len(y_arr) != 4 or len(z_arr) != 4:
-            raise ValueError("Must provide exactly 4 corner positions")
-        
+        if len(x_arr) != len(y_arr) or len(x_arr) != len(z_arr):
+            raise ValueError("x_arr, y_arr, and z_arr must have the same length")
+
+        if len(x_arr) < 3:
+            raise ValueError("Must provide at least 3 measurement points to fit a plane")
+
         if any(z is None for z in z_arr):
             raise ValueError("All Z positions must be measured (no None values)")
-        
-        # Unpack corner positions
-        # Assuming order: [top-left, top-right, bottom-left, bottom-right]
-        x1, x2, x3, x4 = x_arr  # TL, TR, BL, BR
-        y1, y2, y3, y4 = y_arr  # TL, TR, BL, BR
-        z1, z2, z3, z4 = z_arr  # TL, TR, BL, BR
-        
+
+        # Convert to numpy arrays
+        x_arr = np.array(x_arr)
+        y_arr = np.array(y_arr)
+        z_arr = np.array(z_arr)
+
         # Fit plane: z = a*x + b*y + c
-        # Using least squares to find best-fit plane through 4 points
-        
+        # Using least squares to find best-fit plane through N points
+
         # Create design matrix for plane fitting
-        A = np.array([
-            [x1, y1, 1],
-            [x2, y2, 1],
-            [x3, y3, 1],
-            [x4, y4, 1]
-        ])
-        
-        z_vector = np.array([z1, z2, z3, z4])
-        
+        A = np.column_stack([x_arr, y_arr, np.ones(len(x_arr))])
+
         # Solve for plane coefficients using least squares
-        # This is more robust than manual gradient calculation
-        coeffs, residuals, rank, s = np.linalg.lstsq(A, z_vector, rcond=None)
+        coeffs, residuals, rank, s = np.linalg.lstsq(A, z_arr, rcond=None)
         a, b, c = coeffs
-        
+
         print(f"Plane fit coefficients: a={a:.6f}, b={b:.6f}, c={c:.6f}")
-        print(f"Residuals: {residuals}")
-        
+        print(f"Number of calibration points: {len(x_arr)}")
+
+        if len(residuals) > 0:
+            print(f"Residuals sum: {residuals[0]:.6f}")
+            rms_error = np.sqrt(residuals[0] / len(x_arr))
+            print(f"RMS fit error: {rms_error*1000:.2f} microns")
+
         # Apply plane equation to all 96 well positions
         x_vals = np.array(params.x_positions)
         y_vals = np.array(params.y_positions)
-        
+
         z_corrected = a * x_vals + b * y_vals + c
-        
+
         # Calculate tilt angles for user information
         tilt_x = np.arctan(a) * 180 / np.pi  # degrees
         tilt_y = np.arctan(b) * 180 / np.pi  # degrees
-        
+
         print(f"Estimated tilt: X={tilt_x:.3f}°, Y={tilt_y:.3f}°")
-        
+
         # Calculate Z range across plate
         z_min, z_max = z_corrected.min(), z_corrected.max()
         z_range = z_max - z_min
         print(f"Z range across plate: {z_range:.3f} mm (from {z_min:.3f} to {z_max:.3f})")
-        
+
         return z_corrected
 
     @staticmethod

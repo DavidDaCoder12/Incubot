@@ -88,7 +88,10 @@ class MovementControl:
         zString = self.zBase + str(params.zPos) + self.commTerm
         self.ser.write(zString.encode('utf-8'))
         print(f"Moving Z to: {params.zPos:.8f}")
-
+        
+    def move_to_z(self, z):
+        """Alias for moveZTo to match autofocus interface."""
+        self.moveZTo(z)
 
     def XNegFine(self):
         params.xPos -= 0.2

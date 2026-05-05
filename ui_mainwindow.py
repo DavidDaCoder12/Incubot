@@ -1211,7 +1211,7 @@ class Ui_MainWindow(object):
         self.label.setText(_translate("MainWindow", "General"))
         self.buttonCaptureImg.setText(_translate("MainWindow", "Capture image"))
         self.buttonExperiments.setText(_translate("MainWindow", "Experiments"))
-        self.buttonBegin.setText(_translate("MainWindow", "Begin Imaging"))
+        self.buttonBegin.setText(_translate("MainWindow", "Calibrate"))
         self.buttonCancelImaging.setText(_translate("MainWindow", "Cancel Imaging"))
         self.labelWellMove_4.setText(_translate("MainWindow", "Move to well"))
         self.buttonA1_2.setText(_translate("MainWindow", "A1"))
@@ -1356,13 +1356,3 @@ class Ui_MainWindow(object):
         self.labelExposure_11.setText(_translate("MainWindow", "Exposure"))
         self.l_11.setText(_translate("MainWindow", "Brightness"))
 from well_grid_widget import WellGridWidget
-
-
-if __name__ == "__main__":
-    import sys
-    app = QtWidgets.QApplication(sys.argv)
-    MainWindow = QtWidgets.QMainWindow()
-    ui = Ui_MainWindow()
-    ui.setupUi(MainWindow)
-    MainWindow.show()
-    sys.exit(app.exec_())
